@@ -5,8 +5,11 @@ const filterForm = document.querySelector('#filter-by-type-form')
 const filterInput = document.querySelector('#filter-by-type')
 const breweriesUL = document.querySelector('#breweries-list')
 
+// TODO: Expand and split State to clear thing up 
+//       and to make writing functions easier.
 const state = {
-    typeFilter: ['micro', 'regional', 'brewpub'],
+    type_filter: ['micro', 'regional', 'brewpub'],
+    city_filter: [],
     breweries: []
 }
 
@@ -27,9 +30,10 @@ function listenToFilterForm() {
 }
 
 function listenToBrewSearchForm() {
+    const form = document.getElementById('search-breweries-form')
     const input = document.getElementById('search-breweries')
     const brewery = document.getElementsByTagName('li')
-    input.addEventListener('keyup', (e) => {
+    form.addEventListener('keyup', (e) => {
         // this is the search feature that shows specific breweries loaded on page
         e.preventDefault()
         for (let i = 0; i < state.breweries.length; i++) {
@@ -50,12 +54,13 @@ function fetchAndRender(usState) {
     .then(resp => resp.json())
     .then((data) => {
         // This is the API filter when searching
-        const breweriesFilteredByType = data.filter(brew => state.typeFilter.some(type => brew.brewery_type.includes(type)))
+        const breweriesFilteredByType = data.filter(brew => state.type_filter.some(type => brew.brewery_type.includes(type)))
         state.breweries = breweriesFilteredByType
         render(state.breweries)
     })
 }
 
+// DONE: Extension 1
 function createSearchBrewForm() {
     const form = document.createElement('form')
     const label = document.createElement('label')
@@ -64,8 +69,7 @@ function createSearchBrewForm() {
 
     form.setAttribute('id', 'search-breweries-form')
     form.setAttribute('autocomplete', 'off')
-    form.append(label)
-    form.append(input)
+    form.append(label, input)
 
     label.setAttribute('for', 'search-breweries')
     label.append(h2)
@@ -91,6 +95,37 @@ function renderSearchBreweries() {
     brewListH1.insertAdjacentElement('afterend', section)
 }
 
+// TODO: extension 2
+function createCityFilter(breweries) {
+    const div = document.createElement('div')
+    const h3 = document.createElement('h3')
+    const btn = document.createElement('button')
+    const form = document.createElement('form')
+    const input = document.createElement('input')
+    const label = document.createElement('label')
+
+    div.classList.add('filter-by-city-heading')
+    div.append(h3, btn)
+
+    h3.textContent = 'Cities'
+    btn.textContent = 'clear all'
+    btn.classList.add('clear-all-btn')
+
+    form.setAttribute('id', 'filter-by-city-form')
+    form.append(input, label)
+
+    // input.setAttribute('type', 'checkbox')
+    input.type = 'checkbox'
+    input.name = 'chardon'
+    input.value = 'chardon'
+
+    label.setAttribute('for', 'chardon')
+    label.textContent = 'Chardon'
+
+    filterForm.insertAdjacentElement('afterend', div)
+    div.insertAdjacentElement('afterend', form)
+}
+
 function createBreweryLiAddress(brewery) {
     const address = document.createElement('section')
     const addressH3 = document.createElement('h3')
@@ -102,11 +137,8 @@ function createBreweryLiAddress(brewery) {
     addressStreet.textContent = brewery.street
     addressStateZip.textContent = brewery.state + ", " + brewery.postal_code
     addressStateZip.style.fontWeight = 'bold'
-
-    address.append(addressH3)
-    address.append(addressStreet)
-    address.append(addressStateZip)
-
+    
+    address.append(addressH3, addressStreet, addressStateZip)
     return address
 }
 
@@ -121,9 +153,7 @@ function createBreweryLiPhone(brewery) {
         phoneNum.textContent = 'N/A'
     } else {phoneNum.textContent = brewery.phone}
 
-    phone.append(phoneH3)
-    phone.append(phoneNum)
-
+    phone.append(phoneH3, phoneNum)
     return phone
 }
 
@@ -156,12 +186,7 @@ function createBreweryLI(brewery) {
     type.classList.add('type')
     type.textContent = brewery.brewery_type
 
-    li.append(heading)
-    li.append(type)
-    li.append(address)
-    li.append(phone)
-    li.append(link)
-    
+    li.append(heading, type, address, phone, link)
     return li
 }
 
@@ -175,6 +200,7 @@ function renderBrewery(breweries) {
 
 function render(breweries) {
     renderBrewery(breweries)
+    createCityFilter(breweries)
 }
 
 function init() {
